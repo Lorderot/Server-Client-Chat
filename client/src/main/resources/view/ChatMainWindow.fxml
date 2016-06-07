@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.media.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="474.0" prefWidth="662.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ChatMainWindowController">
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#reConnect" text="Reconnect" />
+              <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <center>
+      <AnchorPane prefHeight="436.0" prefWidth="647.0" BorderPane.alignment="CENTER">
+         <children>
+            <TextArea fx:id="messageTextArea" layoutX="169.0" layoutY="377.0" prefHeight="58.0" prefWidth="482.0" />
+            <Button layoutX="55.0" layoutY="386.0" mnemonicParsing="false" onAction="#handleSend" prefHeight="41.0" prefWidth="66.0" text="Send" />
+            <TableView fx:id="participantTableView" layoutX="14.0" layoutY="14.0" prefHeight="355.0" prefWidth="146.0">
+               <columns>
+                  <TableColumn fx:id="nameColumn" prefWidth="146.0" text="Participants" />
+               </columns>
+            </TableView>
+            <TextArea fx:id="chatTextArea" layoutX="168.0" layoutY="14.0" prefHeight="354.0" prefWidth="483.0" />
+         </children>
+      </AnchorPane>
+   </center>
+</BorderPane>
