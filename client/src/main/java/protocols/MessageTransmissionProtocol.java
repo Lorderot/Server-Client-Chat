@@ -1,22 +1,13 @@
-package protocol;
+package protocols;
 
-public class ChatMessage {
+public class MessageTransmissionProtocol {
     private String message;
     private AccessType type;
     private String receiver;
     private String sender;
     private String time;
 
-    public ChatMessage() {
-    }
-
-    public ChatMessage(String message, AccessType type, String receiver,
-                       String sender, String time) {
-        this.message = message;
-        this.type = type;
-        this.receiver = receiver;
-        this.sender = sender;
-        this.time = time;
+    public MessageTransmissionProtocol() {
     }
 
     public String getMessage() {

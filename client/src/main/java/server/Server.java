@@ -2,24 +2,30 @@ package server;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.Charset;
 
 public class Server {
-    private final int portNumber;
-    private final String serverAddress;
+    public static final String defaultAddress = "77.47.204.59";
+    private final int portNumber = 10000;
+    private String serverAddress = defaultAddress;
     private Socket socket;
     private BufferedReader reader;
-    private PrintWriter writer;
+    private OutputStreamWriter writer;
+    private String secureWord;
 
     public Server() {
-        portNumber = 2020;
-        serverAddress = "192.168.1.138";
+    }
+
+    public Server(String serverAddress) {
+        this.serverAddress = serverAddress;
     }
 
     public void connect() throws IOException {
         socket = new Socket(serverAddress, portNumber);
         reader = new BufferedReader(new InputStreamReader(
-                socket.getInputStream()));
-        writer = new PrintWriter(socket.getOutputStream());
+                socket.getInputStream(), Charset.forName("UTF-8")));
+        writer = new OutputStreamWriter(socket.getOutputStream(),
+                Charset.forName("UTF-8"));
     }
 
     public boolean isConnected() {
@@ -30,12 +36,20 @@ public class Server {
         return reader;
     }
 
-    public PrintWriter getWriter() throws IOException {
+    public OutputStreamWriter getWriter() throws IOException {
         return writer;
     }
 
+    public String getServerAddress() {
+        return serverAddress;
+    }
+
     public void close() {
-        writer.close();
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             reader.close();
         } catch (IOException e) {
@@ -46,5 +60,13 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getSecureWord() {
+        return secureWord;
+    }
+
+    public void setSecureWord(String secureWord) {
+        this.secureWord = secureWord;
     }
 }

@@ -18,7 +18,7 @@ public class MainApp extends Application{
     private Server server = new Server();
     @Override
     public void start(Stage primaryStage) throws Exception {
-        String nickname = showNicknameDialog(server, primaryStage);
+        String nickname = showNicknameDialog(primaryStage);
         if (nickname != null) {
             showChatMainWindow(nickname);
         }
@@ -57,7 +57,7 @@ public class MainApp extends Application{
         mainStage.showAndWait();
     }
 
-    public String showNicknameDialog(Server server, Stage parentStage) {
+    public String showNicknameDialog(Stage parentStage) {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/view/NicknameDialog.fxml"));
         try {
@@ -70,13 +70,17 @@ public class MainApp extends Application{
             stage.setTitle("Authorisation");
             NicknameDialogController controller = loader.getController();
             controller.setStage(stage);
-            controller.setServer(server);
             stage.showAndWait();
+            server = controller.getServer();
             return controller.getNickName();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public Server getServer() {
+        return server;
     }
 
     public static void showAlert(Alert.AlertType type, String context) {

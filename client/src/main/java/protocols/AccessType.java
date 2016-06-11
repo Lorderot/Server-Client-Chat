@@ -1,4 +1,4 @@
-package protocol;
+package protocols;
 
 public enum AccessType {
     PRIVATE,
