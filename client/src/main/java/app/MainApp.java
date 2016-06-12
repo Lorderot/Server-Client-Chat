@@ -10,12 +10,15 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import server.Server;
+import server.ChatHandler;
+import server.ConnectionHandler;
 
 import java.io.IOException;
 
 public class MainApp extends Application{
-    private Server server = new Server();
+    private ConnectionHandler connectionHandler;
+    private ChatHandler chatHandler;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         String nickname = showNicknameDialog(primaryStage);
@@ -45,15 +48,9 @@ public class MainApp extends Application{
         ChatMainWindowController controller = loader.getController();
         controller.setNickname(nickname);
         controller.setMainApp(this);
-        try {
-            controller.setServer(server);
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, e.getMessage());
-        }
+        controller.setConnectionHandler(connectionHandler);
+        controller.setChatHandler(chatHandler);
         controller.setStage(mainStage);
-        if (!controller.loadConfigurationData()) {
-            return;
-        }
         mainStage.showAndWait();
     }
 
@@ -71,7 +68,8 @@ public class MainApp extends Application{
             NicknameDialogController controller = loader.getController();
             controller.setStage(stage);
             stage.showAndWait();
-            server = controller.getServer();
+            connectionHandler = controller.getConnectionHandler();
+            chatHandler = controller.getChatHandler();
             return controller.getNickName();
         } catch (IOException e) {
             e.printStackTrace();
@@ -79,8 +77,12 @@ public class MainApp extends Application{
         }
     }
 
-    public Server getServer() {
-        return server;
+    public ConnectionHandler getConnectionHandler() {
+        return connectionHandler;
+    }
+
+    public ChatHandler getChatHandler() {
+        return chatHandler;
     }
 
     public static void showAlert(Alert.AlertType type, String context) {

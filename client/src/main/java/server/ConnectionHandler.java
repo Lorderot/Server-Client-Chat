@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.charset.Charset;
 
-public class Server {
+public class ConnectionHandler {
     public static final String defaultAddress = "77.47.204.59";
     private final int portNumber = 10000;
     private String serverAddress = defaultAddress;
@@ -13,10 +13,10 @@ public class Server {
     private OutputStreamWriter writer;
     private String secureWord;
 
-    public Server() {
+    public ConnectionHandler() {
     }
 
-    public Server(String serverAddress) {
+    public ConnectionHandler(String serverAddress) {
         this.serverAddress = serverAddress;
     }
 
@@ -32,11 +32,11 @@ public class Server {
         return !socket.isClosed();
     }
 
-    public BufferedReader getReader() throws IOException {
+    public BufferedReader getReader() {
         return reader;
     }
 
-    public OutputStreamWriter getWriter() throws IOException {
+    public OutputStreamWriter getWriter() {
         return writer;
     }
 
@@ -44,7 +44,7 @@ public class Server {
         return serverAddress;
     }
 
-    public void close() {
+    public void closeConnection() {
         try {
             writer.close();
         } catch (IOException e) {

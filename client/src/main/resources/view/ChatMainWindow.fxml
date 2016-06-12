@@ -15,7 +15,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-                  <MenuItem mnemonicParsing="false" onAction="#reConnect" text="Reconnect" />
+                  <MenuItem mnemonicParsing="false" onAction="#reconnect" text="Reconnect" />
               <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
             </items>
           </Menu>

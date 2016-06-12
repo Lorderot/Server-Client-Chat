@@ -3,7 +3,7 @@ package protocols;
 public class NicknameTransmissionProtocol {
     private String nickNameRequest;
     private String restriction;
-    private boolean serverRespond;
+    private boolean serverResponse;
 
     public String getNickNameRequest() {
         return nickNameRequest;
@@ -13,12 +13,12 @@ public class NicknameTransmissionProtocol {
         this.nickNameRequest = nickNameRequest;
     }
 
-    public boolean getServerRespond() {
-        return serverRespond;
+    public boolean getServerResponse() {
+        return serverResponse;
     }
 
-    public void setServerRespond(boolean serverRespond) {
-        this.serverRespond = serverRespond;
+    public void setServerResponse(boolean serverResponse) {
+        this.serverResponse = serverResponse;
     }
 
     public String getRestriction() {

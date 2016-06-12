@@ -1,8 +1,6 @@
 package controller;
 
 import JSONcoder.DataTransmissionProtocolCoder;
-import JSONcoder.MessageTransmissionProtocolCoder;
-import JSONcoder.ParticipantsTransmissionProtocolCoder;
 import app.MainApp;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -15,22 +13,24 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
-import protocols.*;
-import server.Server;
+import protocols.AccessType;
+import protocols.DataTransmissionProtocol;
+import server.ChatHandler;
+import server.ConnectionHandler;
+import server.ProtocolHandler;
 import util.DateUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
 public class ChatMainWindowController {
     private MainApp mainApp;
-    private BufferedReader serverReader;
-    private OutputStreamWriter serverWriter;
-    private Server server;
+    private ConnectionHandler connectionHandler;
+    private ChatHandler chatHandler;
+    private ProtocolHandler protocolHandler;
     private String nickname;
     private Stage stage;
     private List<String> participants;
@@ -44,8 +44,8 @@ public class ChatMainWindowController {
     private TextArea messageTextArea;
 
     public ChatMainWindowController() {
-        server = new Server();
-        participants = new ArrayList<>();
+        connectionHandler = new ConnectionHandler();
+        protocolHandler = new ProtocolHandler(this);
     }
 
     @FXML
@@ -56,8 +56,6 @@ public class ChatMainWindowController {
         chatTextArea.setEditable(false);
         messageTextArea.setEditable(true);
         messageTextArea.setWrapText(true);
-        participantTableView.setItems(
-                FXCollections.observableList(participants));
     }
 
     public void handleSend() {
@@ -65,96 +63,75 @@ public class ChatMainWindowController {
         if (message.length() == 0) {
             return;
         }
-        DataTransmissionProtocol dataTransmissionProtocol = new DataTransmissionProtocol();
-        dataTransmissionProtocol.setType(ProtocolType.CLIENT_MESSAGE_TRANSMISSION);
-        MessageTransmissionProtocol messageTransmissionProtocol = new MessageTransmissionProtocol();
-        messageTransmissionProtocol.setSender(nickname);
-        messageTransmissionProtocol.setTime(DateUtil.toString(new Date()));
-        messageTransmissionProtocol.setMessage(message);
         String receiver = participantTableView.getSelectionModel()
                 .getSelectedItem();
-        if (receiver == null) {
-            messageTransmissionProtocol.setType(AccessType.PUBLIC);
-        } else {
-            messageTransmissionProtocol.setType(AccessType.PRIVATE);
-            messageTransmissionProtocol.setReceiver(receiver);
-        }
-        dataTransmissionProtocol.setProtocol(MessageTransmissionProtocolCoder.encode(messageTransmissionProtocol));
-        if (server.isConnected()) {
-            try {
-                serverWriter.write(DataTransmissionProtocolCoder.encode(dataTransmissionProtocol) + "\n");
-                serverWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        String time = DateUtil.toString(new Date());
+        try {
+            chatHandler.send(message, time, receiver);
+            displayOwnMessage(message, time, receiver);
             messageTextArea.clear();
-            receiveMessageFromParticipant(messageTransmissionProtocol);
-        } else {
-            MainApp.showAlert(Alert.AlertType.ERROR, "Server is disconnected!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            MainApp.showAlert(Alert.AlertType.ERROR, e.getMessage());
         }
     }
 
-    public void reConnect() {
-        server.close();
+    public void reconnect() {
+        connectionHandler.closeConnection();
         nickname = mainApp.showNicknameDialog(stage);
         if (nickname == null) {
             return;
         }
-        try {
-            setServer(mainApp.getServer());
-        } catch (IOException e) {
-            e.printStackTrace();
-            MainApp.showAlert(Alert.AlertType.ERROR,
-                    "Error occurs while connecting!");
-            server.close();
-            return;
-        }
-        participants = new ArrayList<>();
-        refreshTable();
-        loadConfigurationData();
+        setConnectionHandler(mainApp.getConnectionHandler());
+        setChatHandler(mainApp.getChatHandler());
     }
 
-    public boolean loadConfigurationData() {
-        try {
-            while (true) {
-                String json = serverReader.readLine();
-                DataTransmissionProtocol dataTransmissionProtocol =
-                        DataTransmissionProtocolCoder.decode(json);
-                if (!dataTransmissionProtocol.getSecureWord()
-                        .equals(server.getSecureWord())) {
-                    continue;
-                }
-                ParticipantsTransmissionProtocol participantsTransmissionProtocol =
-                        ParticipantsTransmissionProtocolCoder
-                                .decode(dataTransmissionProtocol.getProtocol());
-                participants = participantsTransmissionProtocol.getParticipants();
-                participantTableView.setItems(FXCollections
-                        .observableArrayList(participants));
+    public void handleExit() {
+        connectionHandler.closeConnection();
+        stage.close();
+    }
+
+    public void displayClientMessage(String message, String sender,
+                                     String time, AccessType type) {
+        chatTextArea.appendText("\n" + time + "\n");
+        chatTextArea.appendText(sender);
+        switch (type) {
+            case PRIVATE: {
+                chatTextArea.appendText(" whispers you: ");
                 break;
             }
-        } catch (IOException e) {
-            MainApp.showAlert(Alert.AlertType.ERROR, e.getMessage());
-            return false;
+            case PUBLIC: {
+                chatTextArea.appendText(": ");
+            }
         }
-        ProtocolHandler protocolHandler =
-                new ProtocolHandler(this, server, serverReader);
-        protocolHandler.run();
-        return true;
+        chatTextArea.appendText(message);
+    }
+
+    public void displayServerMessage(String message, String time) {
+        chatTextArea.appendText("\n" + time + "\n");
+        chatTextArea.appendText("Server: " + message);
+    }
+
+    public void setChatHandler(ChatHandler chatHandler) {
+        this.chatHandler = chatHandler;
+        participants = chatHandler.getParticipants();
+        refreshTable();
+    }
+
+    public void setParticipants(List<String> participants) {
+        participants.remove(nickname);
+        chatHandler.setParticipants(participants);
+        this.participants = participants;
+        refreshTable();
     }
 
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
 
-    public void setServer(Server server) throws IOException {
-        this.server = server;
-        serverReader = server.getReader();
-        serverWriter = server.getWriter();
-    }
-
-    public void handleExit() {
-        server.close();
-        stage.close();
+    public void setConnectionHandler(ConnectionHandler connectionHandler) {
+        this.connectionHandler = connectionHandler;
+        runReadingThread();
     }
 
     public void setNickname(String nickname) {
@@ -177,101 +154,54 @@ public class ChatMainWindowController {
         });
     }
 
-    synchronized void writeInChatFromServer(
-            MessageTransmissionProtocol message) {
-        chatTextArea.appendText("\n"
-                + message.getTime() + "\n");
-        chatTextArea.appendText(message.getSender());
-        switch (message.getType()) {
-            case PRIVATE: {
-                chatTextArea.appendText(" whispers you: ");
-                break;
-            }
-            case PUBLIC: {
-                chatTextArea.appendText(": ");
-            }
+    private void displayOwnMessage(String message, String time, String receiver) {
+        chatTextArea.appendText("\n" + time + "\n");
+        if (receiver != null) {
+            chatTextArea.appendText("You whisper to " + receiver + ": ");
+        } else {
+            chatTextArea.appendText("You: ");
         }
-        chatTextArea.appendText(message.getMessage());
-    }
-
-    synchronized void receiveMessageFromServer(
-            String message, String time) {
-        chatTextArea.appendText("\n"
-                + time + "\n");
-        chatTextArea.appendText("Server: " + message);
-    }
-
-    private synchronized void receiveMessageFromParticipant(
-            MessageTransmissionProtocol message) {
-        chatTextArea.appendText("\n"
-                + message.getTime() + "\n");
-        switch (message.getType()) {
-            case PRIVATE: {
-                chatTextArea.appendText("whisper to "
-                        + message.getReceiver() + ": ");
-                break;
-            }
-            case PUBLIC: {
-                chatTextArea.appendText(
-                        message.getSender() + ": ");
-            }
-        }
-        chatTextArea.appendText(message.getMessage());
+        chatTextArea.appendText(message);
     }
 
     private void refreshTable() {
         participantTableView.setItems(null);
         participantTableView.setItems(FXCollections
                 .observableArrayList(participants));
-
-    }
-}
-
-class ProtocolHandler implements Runnable {
-    private ChatMainWindowController controller;
-    private Server server;
-    private BufferedReader serverReader;
-
-    public ProtocolHandler(ChatMainWindowController controller,
-                           Server server, BufferedReader serverReader) {
-        this.controller = controller;
-        this.server = server;
-        this.serverReader = serverReader;
     }
 
-    @Override
-    public void run() {
-        String input;
-        try {
-            while (server.isConnected()
-                    && (input = serverReader.readLine()) != null) {
-                DataTransmissionProtocol dataTransmissionProtocol
-                        = DataTransmissionProtocolCoder.decode(input);
-                switch (dataTransmissionProtocol.getType()) {
-                    case FILE_TRANSMISSION: {
-                        break;
+    private void runReadingThread() {
+        Thread reader = new Thread(() -> {
+            String input;
+            BufferedReader serverReader = connectionHandler.getReader();
+            try {
+                while (connectionHandler.isConnected()) {
+                    input = serverReader.readLine();
+                    if (input == null) {
+                        continue;
                     }
-                    case SERVER_MESSAGE_TRANSMISSION: {
-                        MessageTransmissionProtocol message =
-                                MessageTransmissionProtocolCoder
-                                        .decode(dataTransmissionProtocol.getProtocol());
-                        controller.receiveMessageFromServer(
-                                message.getMessage(), message.getTime());
-                    }
-                    case CLIENT_MESSAGE_TRANSMISSION: {
-                        MessageTransmissionProtocol message =
-                                MessageTransmissionProtocolCoder
-                                        .decode(dataTransmissionProtocol.getProtocol());
-                        controller.writeInChatFromServer(message);
+                    try {
+                        DataTransmissionProtocol dataTransmissionProtocol
+                                = DataTransmissionProtocolCoder.decode(input);
+                        if (!connectionHandler.getSecureWord().equals(
+                                dataTransmissionProtocol.getSecureWord())) {
+                            continue;
+                        }
+                        protocolHandler.handle(
+                                dataTransmissionProtocol.getProtocol(),
+                                dataTransmissionProtocol.getType());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
                     }
                 }
-
+            } catch (IOException e) {
+                System.err.println("Thread has been fallen: " + e.getMessage());
+            } finally {
+                System.err.println("Thread has finished work!");
+                connectionHandler.closeConnection();
             }
-        } catch (IOException e) {
-            System.err.println("Thread has been fallen: " + e.getMessage());
-        } finally {
-            System.err.println("Thread has finished work!");
-            server.close();
-        }
+        });
+        reader.setDaemon(true);
+        reader.start();
     }
 }

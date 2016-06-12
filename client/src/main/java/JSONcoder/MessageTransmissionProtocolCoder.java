@@ -7,21 +7,28 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.io.StringReader;
+import java.text.ParseException;
 
 public class MessageTransmissionProtocolCoder {
-    public static MessageTransmissionProtocol decode(String json) {
+    public static MessageTransmissionProtocol decode(String json)
+            throws ParseException {
         MessageTransmissionProtocol protocol =
                 new MessageTransmissionProtocol();
         JsonObject jsonObject = Json.createReader(new StringReader(json))
                 .readObject();
-        String receiver = jsonObject.getString("receiver");
-        String sender = jsonObject.getString("sender");
-        String time = jsonObject.getString("time");
+        if (!jsonObject.isNull("receiver")) {
+            protocol.setReceiver(jsonObject.getString("receiver"));
+        }
+        if (!jsonObject.isNull("sender")) {
+            protocol.setSender(jsonObject.getString("sender"));
+        }
+        if (!jsonObject.isNull("time")) {
+            protocol.setTime(jsonObject.getString("time"));
+        }
+        if (!jsonObject.isNull("type")) {
+            protocol.setType(AccessType.valueOf(jsonObject.getString("type")));
+        }
         protocol.setMessage(jsonObject.getString("message"));
-        protocol.setReceiver(receiver);
-        protocol.setSender(sender);
-        protocol.setTime(time);
-        protocol.setType(AccessType.valueOf(jsonObject.getString("type")));
         return protocol;
     }
 
@@ -30,11 +37,9 @@ public class MessageTransmissionProtocolCoder {
         String receiver = protocol.getReceiver();
         String sender = protocol.getSender();
         String time = protocol.getTime();
+        AccessType type = protocol.getType();
         JsonObjectBuilder objectBuilder = Json.createObjectBuilder()
-                .add("message", message)
-                .add("type", protocol.getType().toString())
-                .add("receiver", receiver)
-                .add("sender", sender);
+                .add("message", message);
         if (time == null) {
             objectBuilder.addNull("time");
         } else {
@@ -49,6 +54,11 @@ public class MessageTransmissionProtocolCoder {
             objectBuilder.addNull("sender");
         } else {
             objectBuilder.add("sender", sender);
+        }
+        if (type == null) {
+            objectBuilder.addNull("type");
+        } else {
+            objectBuilder.add("type", type.toString());
         }
         objectBuilder.add("message", message);
         JsonObject object = objectBuilder.build();
