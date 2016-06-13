@@ -142,7 +142,12 @@ public class ChatHandler {
             protocol = getNickNameResponse();
             nicknameAccepting = protocol.getServerResponse();
             if (!nicknameAccepting) {
-                throw new Exception(protocol.getRestriction());
+                String restriction = protocol.getRestriction();
+                if (restriction != null) {
+                    throw new Exception(protocol.getRestriction());
+                } else {
+                    throw new Exception("Server doesn't accept such nickname!");
+                }
             }
         }
         this.nickname = nickName;
