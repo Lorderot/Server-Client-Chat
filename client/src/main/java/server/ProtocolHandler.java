@@ -3,6 +3,7 @@ package server;
 import JSONcoder.MessageTransmissionProtocolCoder;
 import JSONcoder.ParticipantsTransmissionProtocolCoder;
 import controller.ChatMainWindowController;
+import javafx.application.Platform;
 import protocols.MessageTransmissionProtocol;
 import protocols.ParticipantsTransmissionProtocol;
 import protocols.ProtocolType;
@@ -51,12 +52,16 @@ public class ProtocolHandler {
 
     private void displayClientMessage(
             MessageTransmissionProtocol message) {
-        controller.displayClientMessage(message.getMessage(),
-                message.getSender(), message.getTime(), message.getType());
+        Platform.runLater(() -> {
+            controller.displayClientMessage(message.getMessage(),
+                    message.getSender(), message.getTime(), message.getType());
+        });
     }
 
     private void displayServerMessage(
             String message, String time) {
-        controller.displayServerMessage(message, time);
+        Platform.runLater(() -> {
+            controller.displayServerMessage(message, time);
+        });
     }
 }
