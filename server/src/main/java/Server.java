@@ -69,10 +69,7 @@ public class Server {
             restrictionMessage = "Nickname is too long!";
         }
         if (!nickname.matches("\\p{L}+")) {
-            restrictionMessage = "Please, use only alphabet symbols and digits!";
-        }
-        if (nickname.matches("\\d+")) {
-            restrictionMessage = "Please, don't use only digits!";
+            restrictionMessage = "Please, use only alphabet symbols";
         }
         return restrictionMessage;
     }
@@ -124,9 +121,9 @@ public class Server {
     private static String handleNickNameRequest(
             OutputStreamWriter out, BufferedReader reader, String secureWord)
             throws IOException {
-        while (true) {
+        String nicknameRequest;
+        while ((nicknameRequest = reader.readLine()) != null) {
             try {
-                String nicknameRequest = reader.readLine();
                 DataTransmissionProtocol protocol =
                         DataTransmissionProtocolCoder.decode(nicknameRequest);
                 if (!protocol.getSecureWord().equals(secureWord)) {
@@ -156,6 +153,7 @@ public class Server {
                 e.printStackTrace();
             }
         }
+        return null;
     }
 
     private static void processClient(Socket socket) {
@@ -173,6 +171,12 @@ public class Server {
             out.write(wrappedProtocol + "\n");
             out.flush();
             String nickname = handleNickNameRequest(out, reader, secureWord);
+            if (nickname == null) {
+                out.close();
+                reader.close();
+                socket.close();
+                return;
+            }
             Client newClient = new Client(nickname, secureWord, socket, out, reader);
             clients.put(nickname, newClient);
             sendParticipantList();
@@ -222,7 +226,6 @@ class Client extends Thread {
                                     Client receiver = Server.getClient(
                                             messageProtocol.getReceiver());
                                     receiver.send(jsonMessage);
-
                                 }
                                 case PUBLIC: {
                                     Server.sendClientMessageToAll(messageProtocol);
