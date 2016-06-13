@@ -2,6 +2,7 @@ package controller;
 
 import JSONcoder.DataTransmissionProtocolCoder;
 import app.MainApp;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -34,6 +35,7 @@ public class ChatMainWindowController {
     private String nickname;
     private Stage stage;
     private List<String> participants;
+    private volatile boolean quit = false;
     @FXML
     private TableView<String> participantTableView;
     @FXML
@@ -88,6 +90,7 @@ public class ChatMainWindowController {
 
     public void handleExit() {
         connectionHandler.closeConnection();
+        quit = true;
         stage.close();
     }
 
@@ -171,7 +174,7 @@ public class ChatMainWindowController {
     }
 
     private void runReadingThread() {
-        Thread reader = new Thread(() -> {
+        new Thread(() -> {
             String input;
             BufferedReader serverReader = connectionHandler.getReader();
             try {
@@ -195,9 +198,13 @@ public class ChatMainWindowController {
             } finally {
                 System.err.println("Thread has finished work!");
                 connectionHandler.closeConnection();
+                if (!quit) {
+                    Platform.runLater(() -> {
+                        MainApp.showAlert(Alert.AlertType.ERROR,
+                                "Disconnected from server! Please, try to reconnect!");
+                    });
+                }
             }
-        });
-        reader.setDaemon(true);
-        reader.start();
+        }).start();
     }
 }
