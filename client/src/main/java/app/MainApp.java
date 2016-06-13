@@ -7,17 +7,21 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import server.ChatHandler;
 import server.ConnectionHandler;
+import view.ChatConfigurations;
 
 import java.io.IOException;
 
 public class MainApp extends Application{
     private ConnectionHandler connectionHandler;
     private ChatHandler chatHandler;
+    private ChatConfigurations chatConfigurations
+            = new ChatConfigurations();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -43,13 +47,14 @@ public class MainApp extends Application{
             return;
         }
         Stage mainStage = new Stage();
-        mainStage.setResizable(false);
         mainStage.setScene(new Scene(root));
+        root.setBackground(Background.EMPTY);
         ChatMainWindowController controller = loader.getController();
         controller.setNickname(nickname);
         controller.setMainApp(this);
         controller.setConnectionHandler(connectionHandler);
         controller.setChatHandler(chatHandler);
+        controller.setChatConfigurations(chatConfigurations);
         controller.setStage(mainStage);
         mainStage.showAndWait();
     }

@@ -9,30 +9,35 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="474.0" prefWidth="662.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ChatMainWindowController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="466.0" prefWidth="656.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ChatMainWindowController">
    <top>
       <MenuBar BorderPane.alignment="CENTER">
         <menus>
-          <Menu mnemonicParsing="false" text="File">
-            <items>
-                  <MenuItem mnemonicParsing="false" onAction="#reconnect" text="Reconnect" />
-              <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
-            </items>
-          </Menu>
+            <Menu mnemonicParsing="false" text="Chat">
+              <items>
+                  <MenuItem mnemonicParsing="false" text="Rename" />
+                <MenuItem mnemonicParsing="false" onAction="#reconnect" text="Reconnect" />
+                <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
+              </items>
+            </Menu>
         </menus>
       </MenuBar>
    </top>
    <center>
-      <AnchorPane prefHeight="436.0" prefWidth="647.0" BorderPane.alignment="CENTER">
+      <AnchorPane prefHeight="439.0" prefWidth="645.0" BorderPane.alignment="CENTER">
          <children>
-            <TextArea fx:id="messageTextArea" layoutX="169.0" layoutY="377.0" prefHeight="58.0" prefWidth="482.0" />
-            <Button layoutX="55.0" layoutY="386.0" mnemonicParsing="false" onAction="#handleSend" prefHeight="41.0" prefWidth="66.0" text="Send" />
-            <TableView fx:id="participantTableView" layoutX="14.0" layoutY="14.0" prefHeight="355.0" prefWidth="146.0">
+            <TextArea fx:id="messageTextArea" layoutX="15.0" layoutY="378.0" prefHeight="58.0" prefWidth="482.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="159.0" />
+            <Button layoutX="535.0" layoutY="390.0" mnemonicParsing="false" onAction="#handleSend" prefHeight="35.0" prefWidth="80.0" text="Send" AnchorPane.bottomAnchor="16.0" AnchorPane.rightAnchor="41.0" />
+            <TableView fx:id="participantTableView" layoutX="502.0" layoutY="14.0" prefHeight="355.0" prefWidth="146.0" AnchorPane.bottomAnchor="72.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="14.0">
                <columns>
                   <TableColumn fx:id="nameColumn" prefWidth="146.0" text="Participants" />
                </columns>
             </TableView>
-            <TextArea fx:id="chatTextArea" layoutX="168.0" layoutY="14.0" prefHeight="354.0" prefWidth="483.0" />
+            <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" layoutX="15.0" layoutY="14.0" prefHeight="356.0" prefWidth="479.0" style="-fx-border-color: BLACK;" AnchorPane.bottomAnchor="71.0" AnchorPane.leftAnchor="15.0" AnchorPane.rightAnchor="162.0" AnchorPane.topAnchor="14.0">
+               <content>
+                  <TextFlow fx:id="chatTextFlow" lineSpacing="2.0" prefHeight="293.0" prefWidth="414.0" textAlignment="JUSTIFY" />
+               </content>
+            </ScrollPane>
          </children>
       </AnchorPane>
    </center>
