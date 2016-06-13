@@ -68,7 +68,7 @@ public class Server {
         if (nickname.length() > maxNicknameLength) {
             restrictionMessage = "Nickname is too long!";
         }
-        if (!nickname.matches("\\w+")) {
+        if (!nickname.matches("\\p{L}+")) {
             restrictionMessage = "Please, use only alphabet symbols and digits!";
         }
         if (nickname.matches("\\d+")) {
@@ -138,9 +138,9 @@ public class Server {
                 String nickname = nicknameProtocol.getNickNameRequest();
                 String restrictionMessage =
                         checkNickname(nickname);
-                boolean response = true;
+                boolean response = false;
                 if (restrictionMessage == null) {
-                    response = false;
+                    response = true;
                 }
                 String nicknameResponse = ProtocolCreator.createNicknameProtocol(
                         restrictionMessage, response);
