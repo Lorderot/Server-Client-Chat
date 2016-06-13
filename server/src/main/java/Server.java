@@ -205,11 +205,7 @@ class Client extends Thread {
     public void run() {
         String jsonMessage;
         try {
-            while (true) {
-                jsonMessage = reader.readLine();
-                if (jsonMessage == null) {
-                    continue;
-                }
+            while ((jsonMessage = reader.readLine()) != null) {
                 try {
                     DataTransmissionProtocol protocol = DataTransmissionProtocolCoder
                             .decode(jsonMessage);

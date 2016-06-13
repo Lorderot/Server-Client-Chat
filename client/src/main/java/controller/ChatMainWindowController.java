@@ -175,11 +175,7 @@ public class ChatMainWindowController {
             String input;
             BufferedReader serverReader = connectionHandler.getReader();
             try {
-                while (connectionHandler.isConnected()) {
-                    input = serverReader.readLine();
-                    if (input == null) {
-                        continue;
-                    }
+                while ((input = serverReader.readLine()) != null) {
                     try {
                         DataTransmissionProtocol dataTransmissionProtocol
                                 = DataTransmissionProtocolCoder.decode(input);
